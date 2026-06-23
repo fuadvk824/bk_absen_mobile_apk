@@ -245,13 +245,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// ================= ITEM =================
   Widget _itemCard(CalendarItem item) {
-    //tambahn
+    
     final isLibur = item.status == "Libur";
-    //tambahn
+    
     final today = isToday(item.date);
     final future = isFuture(item.date);
 
-    //tambahan
     final label = isLibur
         ? "Shift"
         : future
@@ -259,7 +258,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         : (item.totalWaktu == '--:--' ? "Shift" : "Total");
 
     final value = isLibur ? "Off" : item.totalWaktu;
-    //tambahan
 
     Color bgColor;
     Color plColor;
@@ -322,11 +320,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      // _timeBox(item.checkIn, "CheckIn", plColor),
-                      // _timeBox(item.checkOut, "CheckOut", plColor),
-                      // _timeBox(item.totalWaktu, (future ? "Shift" : "Total"), plColor),
-
-                      //tambahan
                       _timeBox(
                         isLibur ? "-" : item.checkIn,
                         "CheckIn",
@@ -337,13 +330,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         "CheckOut",
                         plColor,
                       ),
-                      // _timeBox(
-                      //   isLibur ? "Libur" : item.totalWaktu,
-                      //   "Shift",
-                      //   plColor,
-                      // ),
                       _timeBox(value, label, plColor),
-                      //tambahan
                     ],
                   ),
                   const Divider(),
@@ -364,16 +351,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       color: today ? plColor : Color(item.warna),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    // child: Text(
-                    //   item.status,
-                    //   style: TextStyle(color: bgColor, fontSize: 10),
-                    // ),
-                    //tambahan
+                  
                     child: Text(
                       isLibur ? "Libur" : item.status,
                       style: TextStyle(color: bgColor, fontSize: 10),
                     ),
-                    //tambahan
                   ),
                 ],
               ),

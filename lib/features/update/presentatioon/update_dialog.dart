@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../utils/app_colors.dart';
 import '../service/update_service.dart';
+import 'package:bk_absen/model/app_version_model.dart';
 
 class UpdateDialog extends StatefulWidget {
   final String currentVersion;
-  final dynamic latest;
+  // final dynamic latest;
+  final AppVersionModel latest;
   final UpdateService updateService;
 
   const UpdateDialog({
@@ -128,6 +130,17 @@ class _UpdateDialogState extends State<UpdateDialog> {
                               });
                             },
                           );
+                          // final apkUrl = await widget.updateService
+                          //     .getDownloadUrl(widget.latest);
+
+                          // await widget.updateService.downloadAndInstall(
+                          //   apkUrl,
+                          //   onProgress: (value) {
+                          //     setState(() {
+                          //       progress = value;
+                          //     });
+                          //   },
+                          // );
                         },
                   icon: isDownloading
                       ? const SizedBox(

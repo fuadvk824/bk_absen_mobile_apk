@@ -121,6 +121,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
     if (data?.isOff == true) {
       return "Hari ini libur";
     }
+    if (data?.hasShift == false) return "Tidak Ada Shift";
 
     final checkIn = data?.checkIn;
     final checkOut = data?.checkOut;
@@ -146,6 +147,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
       return "Libur";
     }
     //tambahan
+
     if (data?.checkIn == null || data!.checkIn!.isEmpty) {
       return "Check In";
     } else if (data.checkOut == null || data.checkOut!.isEmpty) {

@@ -77,6 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     //tambahan
     final isOff = state.attendance?.isOff == true;
+    final hasShift = state.attendance?.hasShift == true;
     //tambahan
 
     final date = DateFormat(
@@ -113,9 +114,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ActionButtonSection(
                       label: notifier.getButton(),
                       isLoading: isPreparing,
-                      // onTap: _handleActionTap,
                   
-                      onTap: isOff ? null : _handleActionTap,
+                      // onTap: isOff ? null : _handleActionTap,
+                      onTap: (isOff || !hasShift) ? null : _handleActionTap,
                     
                     ),
 
