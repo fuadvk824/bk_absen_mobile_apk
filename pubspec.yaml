@@ -36,17 +36,17 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8  
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^9.0.0        #
   http: ^1.1.0
   uuid: ^4.5.3
   flutter_neumorphic_plus: ^3.4.0
-  intl: ^0.18.1
+  intl: ^0.18.1                         #
   camera: ^0.10.5+5
-  path_provider: ^2.0.15
+  path_provider: ^2.0.15                #
   path: ^1.9.0
-  lucide_icons_flutter: ^3.1.10
-  dio: ^5.4.0
-  flutter_dotenv: ^6.0.0
+  lucide_icons_flutter: ^3.1.10         #
+  dio: ^5.4.0                           #
+  flutter_dotenv: ^6.0.0                #
   flutter_map: ^6.1.0
   latlong2: ^0.9.0
   geolocator: ^10.1.0
@@ -54,15 +54,15 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   url_launcher: ^6.2.6
   file_picker: ^8.0.0
-  shared_preferences: ^2.5.5
-  flutter_riverpod: ^2.5.1
+  shared_preferences: ^2.5.5            #
+  flutter_riverpod: ^2.5.1              #
   flutter_map_tile_caching: ^9.0.1
   flutter_image_compress: ^2.3.0
   cherry_toast: ^1.13.0  
   shimmer: ^3.0.0
   image_picker: ^1.0.0
-  package_info_plus: ^8.0.0
-  open_filex: ^4.7.0
+  package_info_plus: ^8.0.0             #
+  open_filex: ^4.7.0                    #
   version: ^3.0.2
 
 dev_dependencies:

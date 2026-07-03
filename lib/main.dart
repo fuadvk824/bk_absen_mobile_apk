@@ -37,7 +37,3 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// 07 Mei 2026
-//1. saat cuti diambil itu dicalender nya buat tampilan list baru, soalnya kalau tidak nanti tulisan nya tidak hadir
-//2. cek ui baru camera
-//3. besok mulai buat payroll

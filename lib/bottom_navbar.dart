@@ -32,7 +32,6 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
     {"icon": LucideIcons.landmark, "label": "Co-op"},
     {"icon": LucideIcons.user, "label": "Profile"},
   ];
-
   @override
   void initState() {
     super.initState();
