@@ -1,4 +1,7 @@
 import 'package:bk_absen/app/app_router.dart';
+import 'package:bk_absen/core/database/hive_service.dart';
+import 'package:bk_absen/core/network/connectivity_service.dart';
+import 'package:bk_absen/offline/services/sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -17,8 +20,15 @@ void main() async {
 
   await initializeDateFormatting('id_ID', null);
   await dotenv.load(fileName: ".env");
-  await CacheService.init(); 
+  await CacheService.init();
   await TokenManager.init();
+
+  await HiveService.init();
+  final syncService = SyncService();
+  final connectivity = ConnectivityService();
+  connectivity.listen(() async {
+    await syncService.syncPending();
+  });
 
   DioClient.init();
   runApp(const ProviderScope(child: MyApp()));
@@ -36,4 +46,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+//ScaffoldMessenger

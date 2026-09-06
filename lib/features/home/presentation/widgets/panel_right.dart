@@ -106,7 +106,7 @@ Widget _infoRow({
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Icon(icon, size: 20),
-      const SizedBox(width: 10),
+      const SizedBox(width: 10), 
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

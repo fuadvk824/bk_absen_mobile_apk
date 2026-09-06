@@ -6,8 +6,13 @@ import 'package:intl/intl.dart';
 
 class TakePictureScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
+  final String? officeAddress;
 
-  const TakePictureScreen({super.key, required this.cameras});
+  const TakePictureScreen({
+    super.key,
+    required this.cameras,
+    this.officeAddress,
+  });
 
   @override
   State<TakePictureScreen> createState() => _TakePictureScreenState();
@@ -18,7 +23,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   int _cameraIndex = 0;
 
   Timer? _timer;
-  String _timeText = "";
+  DateTime _currentTime = DateTime.now();
 
   bool _isFlashOn = false;
 
@@ -38,10 +43,10 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   void _updateTime() {
-    final now = DateTime.now();
+    if (!mounted) return;
 
     setState(() {
-      _timeText = DateFormat('dd MMM yyyy • HH:mm:ss').format(now);
+      _currentTime = DateTime.now();
     });
   }
 
@@ -53,6 +58,12 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
     );
 
     await _controller!.initialize();
+
+    // Pastikan flash SELALU mati saat kamera pertama kali dibuka
+    await _controller!.setFlashMode(FlashMode.off);
+
+    // Sinkronkan state tombol
+    _isFlashOn = false;
 
     if (!mounted) return;
     setState(() {});
@@ -78,15 +89,21 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   }
 
   Future<void> _toggleFlash() async {
-    if (_controller == null) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
 
-    _isFlashOn = !_isFlashOn;
+    final newFlashMode = _isFlashOn ? FlashMode.off : FlashMode.torch;
 
-    await _controller!.setFlashMode(
-      _isFlashOn ? FlashMode.torch : FlashMode.off,
-    );
+    try {
+      await _controller!.setFlashMode(newFlashMode);
 
-    setState(() {});
+      if (!mounted) return;
+
+      setState(() {
+        _isFlashOn = !_isFlashOn;
+      });
+    } catch (e) {
+      debugPrint('Gagal mengubah flash: $e');
+    }
   }
 
   @override
@@ -109,10 +126,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          /// ===== CAMERA PREVIEW =====
           SizedBox.expand(child: CameraPreview(_controller!)),
 
-          /// ===== OVERLAY GELAP ATAS =====
           Positioned(
             top: 0,
             left: 0,
@@ -129,7 +144,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
             ),
           ),
 
-          /// ===== MARKER TIME STYLE =====
           Positioned(
             bottom: MediaQuery.of(context).size.height * 0.22,
             left: MediaQuery.of(context).size.width * 0.05,
@@ -141,9 +155,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// ===== JAM BESAR =====
                       Text(
-                        DateFormat('HH:mm').format(DateTime.now()),
+                        DateFormat('HH:mm').format(_currentTime),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: MediaQuery.of(context).size.width * 0.19,
@@ -151,7 +164,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1.5,
 
-                          /// FONT LONJONG
                           fontFamily: 'RobotoCondensed',
                         ),
                       ),
@@ -160,7 +172,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                         width: MediaQuery.of(context).size.width * 0.025,
                       ),
 
-                      /// ===== GARIS KUNING =====
                       Container(
                         margin: EdgeInsets.only(
                           top: MediaQuery.of(context).size.height * 0.008,
@@ -177,7 +188,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                         width: MediaQuery.of(context).size.width * 0.025,
                       ),
 
-                      /// ===== TANGGAL + HARI =====
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -187,9 +197,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                DateFormat(
-                                  'dd MMM yyyy',
-                                ).format(DateTime.now()),
+                                DateFormat('dd MMM yyyy').format(_currentTime),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize:
@@ -205,7 +213,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                               ),
 
                               Text(
-                                DateFormat('EEEE').format(DateTime.now()),
+                                DateFormat('EEEE').format(_currentTime),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.95),
                                   fontSize:
@@ -223,15 +231,15 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 
                   SizedBox(height: MediaQuery.of(context).size.height * 0.012),
 
-                  /// ===== LOKASI =====
                   Text(
-                    "Jl Raya Kepatihan, Hendosari, Kepatihan\nGresik, Jawa Timur",
-                    style: TextStyle(
+                    widget.officeAddress?.trim().isNotEmpty == true
+                        ? widget.officeAddress!
+                        : 'Alamat office tidak tersedia',
+                    textAlign: TextAlign.start,
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                      height: 1.25,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: 'RobotoCondensed',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -239,8 +247,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
             ),
           ),
 
-          /// ===== SHUTTER AREA =====
-          /// ===== BOTTOM ACTION =====
           Positioned(
             bottom: MediaQuery.of(context).size.height * 0.07,
             left: 0,
@@ -275,7 +281,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                     ),
                   ),
 
-                  /// ===== SHUTTER BUTTON (BENAR-BENAR TENGAH) =====
                   GestureDetector(
                     onTap: _takePicture,
                     child: Container(
@@ -305,7 +310,6 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                     ),
                   ),
 
-                  /// ===== SWITCH CAMERA =====
                   Positioned(
                     right: MediaQuery.of(context).size.width * 0.15,
                     child: GestureDetector(

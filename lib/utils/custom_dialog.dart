@@ -26,7 +26,6 @@ class CustomDialog {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ICON
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(

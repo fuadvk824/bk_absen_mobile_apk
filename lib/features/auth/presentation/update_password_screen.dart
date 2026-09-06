@@ -110,7 +110,6 @@ class _ForceChangePasswordScreenState
                 ),
                 const SizedBox(height: 30),
 
-                // PASSWORD
                 TextField(
                   controller: password,
                   obscureText: isObscure1,
@@ -135,7 +134,6 @@ class _ForceChangePasswordScreenState
 
                 const SizedBox(height: 16),
 
-                // CONFIRM PASSWORD
                 TextField(
                   controller: confirm,
                   obscureText: isObscure2,
@@ -160,7 +158,6 @@ class _ForceChangePasswordScreenState
 
                 const SizedBox(height: 24),
 
-                // BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 50,

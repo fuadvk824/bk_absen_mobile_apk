@@ -46,7 +46,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  /// ================= MAIN CONTENT =================
   Widget _buildContent(BuildContext context, List<CalendarItem> items) {
     final bottomSafe = MediaQuery.of(context).padding.bottom;
 
@@ -65,10 +64,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
-            /// ================= CALENDAR =================
             _buildCalendar(items),
 
-            /// ================= HEADER =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -103,7 +100,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
             const SizedBox(height: 10),
 
-            /// ================= LIST =================
             Expanded(child: _buildList(items, bottomSafe)),
           ],
         ),
@@ -111,7 +107,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  /// ================= CALENDAR =================
   Widget _buildCalendar(List<CalendarItem> items) {
     final map = {for (var e in items) normalize(e.date): e};
 
@@ -195,7 +190,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  /// ================= LIST =================
   Widget _buildList(List<CalendarItem> items, double bottomSafe) {
     if (items.isEmpty) {
       return const Center(child: Text("Tidak ada data"));
@@ -243,7 +237,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  /// ================= ITEM =================
   Widget _itemCard(CalendarItem item) {
     
     final isLibur = item.status == "Libur";
@@ -285,7 +278,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            /// DATE
             Container(
               width: 60,
               decoration: BoxDecoration(
@@ -313,7 +305,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
             const SizedBox(width: 12),
 
-            /// DETAIL
             Expanded(
               child: Column(
                 children: [

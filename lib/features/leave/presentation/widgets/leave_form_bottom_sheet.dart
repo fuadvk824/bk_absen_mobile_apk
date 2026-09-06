@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:bk_absen/features/leave/provider/leave_provider.dart';
 import 'package:bk_absen/model/leave_category_model.dart';
+import 'package:bk_absen/utils/toast_helper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:cherry_toast/cherry_toast.dart';
-import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LeaveFormBottomSheet extends ConsumerStatefulWidget {
@@ -36,14 +35,17 @@ class _LeaveFormBottomSheetState extends ConsumerState<LeaveFormBottomSheet> {
   bool isSubmitting = false;
 
   bool get isFormValid {
-    return selectedCategory != null && selectedDate != null && endDate != null;
+    return selectedCategory != null &&
+        selectedDate != null &&
+        endDate != null &&
+        !endDate!.isBefore(selectedDate!);
   }
 
   Future<void> _submit() async {
-    String startDateStr =
+    final startDateStr =
         "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}";
 
-    String endDateStr =
+    final endDateStr =
         "${endDate!.year}-${endDate!.month.toString().padLeft(2, '0')}-${endDate!.day.toString().padLeft(2, '0')}";
 
     try {
@@ -55,30 +57,20 @@ class _LeaveFormBottomSheetState extends ConsumerState<LeaveFormBottomSheet> {
         file: selectedFile,
       );
 
-      _showSuccess(message);
+      if (!mounted) return;
 
-      if (mounted) Navigator.pop(context);
+      ToastHelper.success(context, title: 'Berhasil', message: message);
+
+      Navigator.pop(context);
     } catch (e) {
-      _showError(e.toString().replaceAll("Exception: ", ""));
+      if (!mounted) return;
+
+      ToastHelper.error(
+        context,
+        title: 'Gagal',
+        message: e.toString().replaceAll("Exception: ", ""),
+      );
     }
-  }
-
-  void _showSuccess(String message) {
-    CherryToast.success(
-      title: const Text("Berhasil"),
-      description: Text(message),
-      animationType: AnimationType.fromTop,
-      animationDuration: const Duration(milliseconds: 700),
-    ).show(context);
-  }
-
-  void _showError(String message) {
-    CherryToast.error(
-      title: Text("Gagal"),
-      description: Text(message),
-      animationType: AnimationType.fromTop,
-      animationDuration: const Duration(milliseconds: 700),
-    ).show(context);
   }
 
   @override
@@ -112,20 +104,38 @@ class _LeaveFormBottomSheetState extends ConsumerState<LeaveFormBottomSheet> {
             categoriesAsync.when(
               data: (categories) {
                 return DropdownButtonFormField<LeaveCategoryModel>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
+                  isExpanded: true,
                   hint: const Text("Pilih jenis cuti"),
-
                   items: categories.map((cat) {
-                    return DropdownMenuItem(
+                    return DropdownMenuItem<LeaveCategoryModel>(
                       value: cat,
                       enabled: cat.remainingDays > 0,
-                      child: Text(
-                        "${cat.leaveName} sisa (${cat.remainingDays} hari)",
-                        style: TextStyle(
-                          color: cat.remainingDays == 0
-                              ? Colors.grey
-                              : Colors.black,
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              cat.leaveName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: cat.remainingDays == 0
+                                    ? Colors.grey
+                                    : Colors.black,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "(${cat.remainingDays} hari)",
+                            style: TextStyle(
+                              color: cat.remainingDays == 0
+                                  ? Colors.grey
+                                  : Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
@@ -236,20 +246,35 @@ class _LeaveFormBottomSheetState extends ConsumerState<LeaveFormBottomSheet> {
             InkWell(
               onTap: () async {
                 final result = await FilePicker.platform.pickFiles();
-                 
-                if (result != null) {
-                  final pickedFile = result.files.single;
-                  final maxSize = 2 * 1024 * 1024;
 
-                  if (pickedFile.size > maxSize) {
-                    _showError("Ukuran file maksimal 2MB");
-                    return;
-                  }
+                if (!context.mounted) return;
 
-                  setState(() {
-                    selectedFile = File(pickedFile.path!);
-                  });
+                if (result == null) return;
+
+                final pickedFile = result.files.single;
+                const maxSize = 2 * 1024 * 1024;
+
+                if (pickedFile.size > maxSize) {
+                  ToastHelper.error(
+                    context,
+                    title: 'Gagal',
+                    message: 'Ukuran file maksimal 2MB',
+                  );
+                  return;
                 }
+
+                if (pickedFile.path == null) {
+                  ToastHelper.error(
+                    context,
+                    title: 'Gagal',
+                    message: 'File tidak dapat dibaca',
+                  );
+                  return;
+                }
+
+                setState(() {
+                  selectedFile = File(pickedFile.path!);
+                });
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(

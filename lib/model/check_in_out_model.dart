@@ -16,7 +16,7 @@ class CheckInOutModel {
     this.limitLate, //tambahan
     this.hasShift = false,
   });
-
+ 
   factory CheckInOutModel.fromJson(Map<String, dynamic> json) {
     return CheckInOutModel(
       tanggal: json['tanggal'] ?? '',

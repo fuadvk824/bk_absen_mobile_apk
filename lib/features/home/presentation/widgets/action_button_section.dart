@@ -42,7 +42,6 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
   void didUpdateWidget(covariant ActionButtonSection oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    //  start looping
     if (widget.isLoading && !_controller.isAnimating) {
       _controller.repeat();
     }
@@ -65,7 +64,6 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
       }
     });
 
-    // tetap panggil parent (biar logic jalan)
     widget.onTap?.call();
   }
 
@@ -83,7 +81,6 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          ///  WAVE ANIMATION
           Positioned.fill(
             child: IgnorePointer(
               child: OverflowBox(
@@ -94,7 +91,6 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
                 child: AnimatedBuilder(
                   animation: _controller,
                   builder: (context, _) {
-                    //  BELUM LOADING → JANGAN TAMPILKAN WAVE SAMA SEKALI
                     if (!widget.isLoading) {
                       return const SizedBox.shrink();
                     }
@@ -110,9 +106,7 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
                         }
 
                         final progress = Curves.easeOut.transform(rawProgress);
-
                         final size = 120 + (progress * 500);
-                      
                         final opacity = (1 - progress).clamp(0.0, 1.0);
 
                         return Opacity(
@@ -136,17 +130,14 @@ class _ActionButtonSectionState extends State<ActionButtonSection>
             ),
           ),
 
-          ///  BACKGROUND CIRCLES
           _buildOuterCircle(220),
           _buildOuterCircle(200),
           _buildOuterCircle(180),
 
-          ///  MAIN BUTTON
           Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(100),
-              // onTap: widget.isLoading ? null : _handleTap,
               onTap: _handleTap,
               child: _buildMainButton(),
             ),

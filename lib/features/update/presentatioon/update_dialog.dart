@@ -130,17 +130,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                               });
                             },
                           );
-                          // final apkUrl = await widget.updateService
-                          //     .getDownloadUrl(widget.latest);
-
-                          // await widget.updateService.downloadAndInstall(
-                          //   apkUrl,
-                          //   onProgress: (value) {
-                          //     setState(() {
-                          //       progress = value;
-                          //     });
-                          //   },
-                          // );
+                          
                         },
                   icon: isDownloading
                       ? const SizedBox(

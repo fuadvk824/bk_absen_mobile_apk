@@ -12,6 +12,7 @@ import 'package:bk_absen/features/home/provider/attendance_provider.dart';
 import 'package:bk_absen/model/check_in_out_model.dart';
 import 'package:bk_absen/utils/app_colors.dart';
 import 'package:bk_absen/utils/custom_dialog.dart';
+import 'package:bk_absen/utils/toast_helper.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,11 +32,8 @@ class CheckInOutScreen extends ConsumerStatefulWidget {
 class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
   bool _isSubmitLoading = false;
   File? _imageFile;
-
-  // DateTime _now = DateTime.now();
   Timer? _timer;
 
-  /// MAP
   final MapController _mapController = MapController();
   double? _distance;
   String _locationStatus = "-";
@@ -49,10 +47,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
   void initState() {
     super.initState();
 
-    // _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-    //   setState(() => _now = DateTime.now());
-    // });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       cekLokasi();
     });
@@ -64,32 +58,45 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
     super.dispose();
   }
 
-  /// ================= LOCATION =================
   Future<void> cekLokasi() async {
-    setState(() => isLoadingLocation = true);
+    if (isLoadingLocation) return;
+
+    if (mounted) {
+      setState(() {
+        isLoadingLocation = true;
+      });
+    }
 
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
       if (!serviceEnabled) {
+        if (!mounted) return;
+
         setState(() {
           _locationStatus = "Sinkronkan GPS";
           isLoadingLocation = false;
         });
+
         _showGpsDialog();
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+
         setState(() {
           _locationStatus = "Permission ditolak";
           isLoadingLocation = false;
         });
+
         _showPermissionDialog();
         return;
       }
@@ -110,6 +117,7 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       }
 
       final newUser = LatLng(pos.latitude, pos.longitude);
+
       final distance = Geolocator.distanceBetween(
         officeLat,
         officeLng,
@@ -129,8 +137,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       final point = _mapController.camera.project(newUser);
       final shiftedPoint = point + const Point<double>(0, 180);
       final shiftedLatLng = _mapController.camera.unproject(shiftedPoint);
+
       _mapController.move(shiftedLatLng, 18);
-      // _mapController.move(newUser, 18);
     } catch (e) {
       setState(() {
         _locationStatus = "Error lokasi";
@@ -174,14 +182,19 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
     );
   }
 
-  /// ================= CAMERA =================
   Future<void> _openCamera() async {
     final cameras = await availableCameras();
     if (!mounted) return;
+    final user = ref.read(attendanceProvider).user;
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => TakePictureScreen(cameras: cameras)),
+      MaterialPageRoute(
+        builder: (_) => TakePictureScreen(
+          cameras: cameras,
+          officeAddress: user?.officeAddress,
+        ),
+      ),
     );
 
     if (result != null && result is File) {
@@ -189,14 +202,11 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
     }
   }
 
-  /// ================= VALIDATION =================
   bool canSubmit(CheckInOutModel? data) {
-    //tambahan
     if (data?.isOff == true) return false;
-    //tambahan
+
     final isCheckedIn = data?.checkIn != null && data!.checkIn!.isNotEmpty;
     final isCheckedOut = data?.checkOut != null && data!.checkOut!.isNotEmpty;
-
     final isDone = isCheckedIn && isCheckedOut;
 
     return _imageFile != null &&
@@ -206,14 +216,11 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
         !isDone;
   }
 
-  /// ================= ACTION =================
   Future<void> _handleSubmit(bool isCheckedIn, int employeeId) async {
     if (_isSubmitLoading) return;
 
     final notifier = ref.read(attendanceProvider.notifier);
 
-    ///////////////////////////////////////////////////////////
-    // CEK TELAT SAAT CHECKIN
     if (!isCheckedIn && notifier.isLate()) {
       final result = await showDialog(
         context: context,
@@ -222,6 +229,7 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
 
       if (result == null) return;
 
+      if (!mounted) return;
       setState(() => _isSubmitLoading = true);
 
       try {
@@ -240,9 +248,9 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
 
         Navigator.pop(context, true);
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+        if (!mounted) return;
+
+        ToastHelper.error(context, message: "Gagal: $e");
       } finally {
         if (mounted) {
           setState(() => _isSubmitLoading = false);
@@ -251,8 +259,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
 
       return;
     }
-    ///////////////////////////////////////////////////////////////
 
+    if (!mounted) return;
     setState(() => _isSubmitLoading = true);
 
     try {
@@ -302,9 +310,9 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+      if (!mounted) return;
+
+      ToastHelper.error(context, message: "Gagal: $e");
     } finally {
       if (mounted) {
         setState(() => _isSubmitLoading = false);
@@ -318,16 +326,15 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
     final user = state.user;
     final data = state.attendance;
 
-    final officeLatLng = LatLng(user!.officeLatitude!, user.officeLongitude!);
+    if (state.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
+    final officeLatLng = LatLng(user!.officeLatitude!, user.officeLongitude!);
     final radiusMeter = user.officeRadius ?? 20;
 
     final isCheckedIn = data?.checkIn != null && data!.checkIn!.isNotEmpty;
     final isCheckedOut = data?.checkOut != null && data!.checkOut!.isNotEmpty;
-
-    if (state.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
 
     return PopScope(
       canPop: !_isSubmitLoading,
@@ -356,9 +363,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  // onPressed: () {
-                  //   Navigator.pop(context);
-                  // },
                   onPressed: _isSubmitLoading
                       ? null
                       : () => Navigator.pop(context),
@@ -373,7 +377,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
               absorbing: _isSubmitLoading,
               child: Stack(
                 children: [
-                  /// MAP
                   Positioned.fill(
                     child: FlutterMap(
                       mapController: _mapController,
@@ -403,7 +406,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                             ),
                           ],
                         ),
-                        // MarkerLayer(markers: markers),
                         MarkerLayer(
                           markers: buildMarkers(
                             office: officeLatLng,
@@ -414,7 +416,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                     ),
                   ),
 
-                  /// INFO TIME
                   Positioned(
                     top: MediaQuery.of(context).padding.top + 20,
                     left: 0,
@@ -456,7 +457,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                     ),
                   ),
 
-                  /// PANEL BAWAH
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
@@ -495,7 +495,6 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                                 isCheckedOut: isCheckedOut,
                                 isSubmitLoading: _isSubmitLoading,
                                 onSubmit: () {
-                                  // if (user == null) return;
                                   _handleSubmit(isCheckedIn, user.employeeId);
                                 },
                               ),

@@ -26,7 +26,6 @@ class OvertimeModel {
       reason: json['reason'] ?? '',
       status: json['status'] ?? 'pending',
 
-      // penting: backend kamu kirim 0xffffc107 (hex int)
       warna: _parseColor(json['warna']),
     );
   }

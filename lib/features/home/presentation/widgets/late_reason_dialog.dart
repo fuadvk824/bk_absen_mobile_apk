@@ -48,7 +48,7 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// HEADER
+            
               Row(
                 children: const [
                   Icon(Icons.warning_amber_rounded, color: AppColors.secondary),
@@ -62,7 +62,6 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
 
               const SizedBox(height: 16),
 
-              /// INPUT ALASAN
               TextFormField(
                 controller: _reasonController,
                 maxLines: 3,
@@ -95,7 +94,6 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
 
               const SizedBox(height: 16),
 
-              /// UPLOAD BUTTON
               GestureDetector(
                 onTap: _pickFile,
                 child: Container(
@@ -114,7 +112,6 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
                 ),
               ),
 
-              /// PREVIEW GAMBAR
               if (_file != null) ...[
                 const SizedBox(height: 12),
                 ClipRRect(
@@ -130,7 +127,6 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
 
               const SizedBox(height: 20),
 
-              /// ACTION BUTTON
               Row(
                 children: [
                   Expanded(
@@ -149,7 +145,7 @@ class _LateReasonDialogState extends State<LateReasonDialog> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        /// VALIDASI FORM
+                    
                         if (!_formKey.currentState!.validate()) {
                           return;
                         }

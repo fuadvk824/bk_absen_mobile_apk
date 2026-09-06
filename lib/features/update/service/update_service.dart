@@ -24,27 +24,6 @@ class UpdateService {
     final latest = await getLatestVersion();
     return currentVersion != latest.version;
   }
-  // Future<bool> hasUpdate() async {
-  //   final current = Version.parse(await getCurrentVersion());
-  //   final latest = Version.parse((await getLatestVersion()).version);
-
-  //   return latest > current;
-  // }
-
-  // Future<String> getDownloadUrl(AppVersionModel latest) async {
-  //   final androidInfo = await DeviceInfoPlugin().androidInfo;
-
-  //   final abis = androidInfo.supportedAbis;
-
-  //   // print("ABI DEVICE : $abis");
-  //   // print("ABI DEVICE : ${androidInfo.supportedAbis}");
-
-  //   if (abis.contains('arm64-v8a')) {
-  //     return latest.apkArm64;
-  //   }
-
-  //   return latest.apkV7a;
-  // }
 
   Future<void> downloadAndInstall(
     String apkUrl, {

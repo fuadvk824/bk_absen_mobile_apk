@@ -1,4 +1,4 @@
-import 'package:bk_absen/features/auth/presentation/update_password_screen.dart';
+// import 'package:bk_absen/features/auth/presentation/update_password_screen.dart';
 import 'package:bk_absen/features/update/presentatioon/update_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +43,8 @@ class _AppRouterState extends ConsumerState<AppRouter> {
       if (hasUpdate) {
         final currentVersion = await updateService.getCurrentVersion();
 
+        if (!mounted) return;
+        
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -73,9 +75,9 @@ class _AppRouterState extends ConsumerState<AppRouter> {
           return const AuthLoginScreen();
         }
 
-        if (user.keyStatus == 'new') {
-          return const ForceChangePasswordScreen();
-        }
+        // if (user.keyStatus == 'new') {
+        //   return const ForceChangePasswordScreen();
+        // }
 
         return const BottomNavbar();
       },

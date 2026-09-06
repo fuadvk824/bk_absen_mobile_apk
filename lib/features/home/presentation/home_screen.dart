@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:bk_absen/features/home/provider/attendance_provider.dart';
+import 'package:bk_absen/offline/provider/sync_provider.dart';
 import 'package:bk_absen/utils/app_colors.dart';
+import 'package:bk_absen/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -17,8 +21,33 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
   bool isPreparing = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(syncManagerProvider).sync();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      await ref.read(syncManagerProvider).sync();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   Future<void> _handleActionTap() async {
     final notifier = ref.read(attendanceProvider.notifier);
@@ -27,9 +56,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (isPreparing) return;
 
     if (state.attendance?.isOff == true) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Hari ini libur")));
+      ToastHelper.warning(context, message: "Hari ini libur");
+      return;
+    }
+    if (state.attendance?.hasShift == false) {
+      ToastHelper.warning(context, message: "Tidak ada shift hari ini");
+
       return;
     }
 
@@ -47,21 +79,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       if (!mounted) return;
 
-      final result = await Navigator.push<bool>(
+      await Navigator.push<bool>(
         context,
         MaterialPageRoute(builder: (_) => const CheckInOutScreen()),
       );
 
-      if (result == true) {
-        await notifier.load();
-      }
+      await notifier.load();
     } catch (e) {
-      debugPrint("Error prepare: $e");
-
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
+        ToastHelper.error(context, message: "Terjadi kesalahan: $e");
       }
     } finally {
       if (mounted) {
@@ -75,10 +101,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(attendanceProvider);
     final notifier = ref.read(attendanceProvider.notifier);
 
-    //tambahan
-    final isOff = state.attendance?.isOff == true;
-    final hasShift = state.attendance?.hasShift == true;
-    //tambahan
+    final isOff = state.attendance?.isOff ?? false;
+    final hasShift = state.attendance?.hasShift ?? true;
 
     final date = DateFormat(
       'EEEE, dd MMMM yyyy',
@@ -94,7 +118,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await notifier.load();
+            await ref.read(syncManagerProvider).sync();
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -114,10 +138,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ActionButtonSection(
                       label: notifier.getButton(),
                       isLoading: isPreparing,
-                  
-                      // onTap: isOff ? null : _handleActionTap,
+
                       onTap: (isOff || !hasShift) ? null : _handleActionTap,
-                    
                     ),
 
                     const SizedBox(height: 60),

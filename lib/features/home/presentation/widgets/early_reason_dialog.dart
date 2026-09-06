@@ -31,7 +31,6 @@ class _EarlyReasonDialogState extends State<EarlyReasonDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// HEADER
               Row(
                 children: const [
                   Icon(
@@ -63,7 +62,6 @@ class _EarlyReasonDialogState extends State<EarlyReasonDialog> {
 
               const SizedBox(height: 16),
 
-              /// INPUT ALASAN
               TextFormField(
                 controller: _reasonController,
                 maxLines: 3,
@@ -102,7 +100,6 @@ class _EarlyReasonDialogState extends State<EarlyReasonDialog> {
 
               const SizedBox(height: 20),
 
-              /// ACTION BUTTON
               Row(
                 children: [
                   Expanded(

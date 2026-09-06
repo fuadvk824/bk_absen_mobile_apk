@@ -1,5 +1,4 @@
-import 'package:cherry_toast/cherry_toast.dart';
-import 'package:cherry_toast/resources/arrays.dart';
+import 'package:bk_absen/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 
 class OvertimeFormBottomSheet extends StatefulWidget {
@@ -35,7 +34,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
     });
   }
 
-  /// VALIDASI WAKTU
   bool get isTimeValid {
     if (startTime == null || endTime == null) return false;
 
@@ -69,23 +67,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
       timeTo: timeTo,
       reason: reasonController.text,
     );
-  }
-
-  void _showSuccess(String message) {
-    CherryToast.success(
-      title: const Text("Berhasil"),
-      description: Text(message),
-      animationType: AnimationType.fromTop,
-      animationDuration: const Duration(milliseconds: 700),
-    ).show(context);
-  }
-
-  void _showError(String message) {
-    CherryToast.error(
-      title: Text(message),
-      animationType: AnimationType.fromTop,
-      animationDuration: const Duration(milliseconds: 700),
-    ).show(context);
   }
 
   String? formatTime(TimeOfDay? time) {
@@ -158,7 +139,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
 
           const SizedBox(height: 16),
 
-          /// JAM (GRID BIAR RAPI)
           Row(
             children: [
               Expanded(
@@ -170,23 +150,7 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
-                    // InkWell(
-                    //   onTap: () async {
-                    //     TimeOfDay? picked = await showTimePicker(
-                    //       context: context,
-                    //       initialTime: TimeOfDay.now(),
-                    //     );
-
-                    //     if (picked != null) {
-                    //       setState(() => startTime = picked);
-                    //     }
-                    //   },
-                    //   child: _timeField(
-                    //     context,
-                    //     startTime?.format(context),
-                    //     "Mulai",
-                    //   ),
-                    // ),
+                    
                     InkWell(
                       onTap: () async {
                         TimeOfDay? picked = await showTimePicker(
@@ -225,23 +189,7 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
-                    // InkWell(
-                    //   onTap: () async {
-                    //     TimeOfDay? picked = await showTimePicker(
-                    //       context: context,
-                    //       initialTime: TimeOfDay.now(),
-                    //     );
-
-                    //     if (picked != null) {
-                    //       setState(() => endTime = picked);
-                    //     }
-                    //   },
-                    //   child: _timeField(
-                    //     context,
-                    //     endTime?.format(context),
-                    //     "Selesai",
-                    //   ),
-                    // ),
+                    
                     InkWell(
                       onTap: () async {
                         TimeOfDay? picked = await showTimePicker(
@@ -273,7 +221,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
             ],
           ),
 
-          /// ERROR VALIDASI
           if (!isTimeValid && startTime != null && endTime != null)
             const Padding(
               padding: EdgeInsets.only(top: 8),
@@ -285,7 +232,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
 
           const SizedBox(height: 16),
 
-          /// ALASAN
           const Text("Alasan", style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
           TextField(
@@ -305,7 +251,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
 
           const SizedBox(height: 24),
 
-          /// BUTTON
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -322,16 +267,15 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
 
                       try {
                         final message = await _submit();
+                        if (!context.mounted) return;
 
-                        _showSuccess(message);
-                        if (mounted) Navigator.pop(context);
+                        ToastHelper.success(context, message: message);
+                        Navigator.pop(context);
                       } catch (e) {
+                        if (!context.mounted) return;
                         final msg = e.toString().replaceAll("Exception: ", "");
-                        _showError(msg);
-                      }
 
-                      if (mounted) {
-                        setState(() => isSubmitting = false);
+                        ToastHelper.error(context, message: msg);
                       }
                     },
               child: isSubmitting

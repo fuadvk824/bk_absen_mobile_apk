@@ -1,5 +1,6 @@
 import 'package:bk_absen/features/category/payroll.dart';
 import 'package:bk_absen/features/leave/presentation/leave_screen.dart';
+import 'package:bk_absen/features/letter/presentation/letter_screen.dart';
 import 'package:bk_absen/features/overtime/presentation/overtime_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,7 +22,6 @@ class MenuItem {
 class Menu extends StatelessWidget {
   const Menu({super.key});
 
-  /// DATA MENU
   static const List<MenuItem> menus = [
     MenuItem(
       title: "Lembur",
@@ -38,6 +38,11 @@ class Menu extends StatelessWidget {
       icon: LucideIcons.receipt,
       page: Payroll(title: 'Payroll')
     ),
+    MenuItem(
+      title: "SP",
+      icon: LucideIcons.mailWarning,
+      page: LetterScreen(title: 'SP')
+    ),
   
   ];
 
@@ -50,16 +55,14 @@ class Menu extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
 
-            /// TITLE
             const Text(
-              "Menu Lintune",
+              "Kategori",
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 20,
               ),
             ),
 
-            /// GRID MENU
             Expanded(
               child: GridView.builder(
                 itemCount: menus.length,
@@ -86,7 +89,6 @@ class Menu extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        /// ICON BOX
                         Container(
                           height: 60,
                           width: 60,
@@ -103,7 +105,6 @@ class Menu extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        /// TITLE
                         Text(
                           menu.title,
                           textAlign: TextAlign.center,
