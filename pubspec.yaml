@@ -17,8 +17,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
 # version: 1.0.0+1
-version: 1.0.1+2
-# version: 1.0.2+3
+# version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ^3.11.0
@@ -37,7 +37,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8  
   flutter_secure_storage: ^9.0.0        #
-  http: ^1.1.0
   uuid: ^4.5.3
   flutter_neumorphic_plus: ^3.4.0
   intl: ^0.18.1                         #
@@ -45,6 +44,7 @@ dependencies:
   path_provider: ^2.0.15                #
   path: ^1.9.0
   lucide_icons_flutter: ^3.1.10         #
+  http: ^1.1.0
   dio: ^5.4.0                           #
   flutter_dotenv: ^6.0.0                #
   flutter_map: ^6.1.0
@@ -68,7 +68,6 @@ dependencies:
   hive_ce_flutter: ^2.3.1           #database offline
   connectivity_plus: ^7.3.1                 #cek wifi/mobile
   internet_connection_checker_plus: ^3.1.1  #cek internet
-  syncfusion_flutter_pdfviewer: ^32.2.9     
 
 dev_dependencies:
   hive_ce_generator: ^1.9.2

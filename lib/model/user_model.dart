@@ -57,7 +57,10 @@ class UserModel {
       position: json['position'],
       checkInTime: json['checkin_time'],
       checkOutTime: json['checkout_time'],
-      toleransiLate: json['toleransi_late'],
+      // toleransiLate: json['toleransi_late'],
+      toleransiLate: json['toleransi_late'] is int
+          ? json['toleransi_late']
+          : int.tryParse(json['toleransi_late']?.toString() ?? ''),
 
       officeName: json['office_name'],
       officeAddress: json['office_address'],

@@ -84,13 +84,45 @@ class AttendanceRepository {
   }
  
   Future<CheckInOutModel?> getToday() async {
+    final now = DateTime.now();
+
+    final today =
+        "${now.year.toString().padLeft(4, '0')}-"
+        "${now.month.toString().padLeft(2, '0')}-"
+        "${now.day.toString().padLeft(2, '0')}";
+
     try {
       final res = await DioClient.dio.get('/attendance');
       final data = Map<String, dynamic>.from(res.data['data'] ?? res.data);
+      final attendance = CheckInOutModel.fromJson(data);
+      final attendanceDate = attendance.tanggal.toString().split(' ').first;
 
-      await CacheService.write("attendance_today", data);
+      // Server mengembalikan attendance hari ini.
+      if (attendanceDate == today) {
+        await CacheService.write("attendance_today", {
+          "tanggal": attendance.tanggal,
+          "check_in": attendance.checkIn,
+          "check_out": attendance.checkOut,
+          "total_waktu": attendance.totalWaktu,
+          "is_off": attendance.isOff,
+          "has_shift": attendance.hasShift,
+          "limit_late": attendance.limitLate,
+        });
 
-      return CheckInOutModel.fromJson(data);
+        return attendance;
+      }
+
+      // Server mengembalikan attendance kemarin.
+      // Jangan masukkan data tersebut sebagai attendance hari ini.
+      return CheckInOutModel(
+        tanggal: today,
+        checkIn: null,
+        checkOut: null,
+        totalWaktu: null,
+        isOff: attendance.isOff,
+        hasShift: attendance.hasShift,
+        limitLate: attendance.limitLate,
+      );
     } catch (e) {
       final cache = CacheService.read("attendance_today");
 
@@ -98,30 +130,24 @@ class AttendanceRepository {
         return null;
       }
 
-      final now = DateTime.now();
+      final cacheMap = Map<String, dynamic>.from(cache);
 
-      final today =
-          "${now.year.toString().padLeft(4, '0')}-"
-          "${now.month.toString().padLeft(2, '0')}-"
-          "${now.day.toString().padLeft(2, '0')}";
+      final cacheTanggal = cacheMap['tanggal']?.toString().split(' ').first;
 
-      final cacheTanggal = cache['tanggal']?.toString().split(' ').first;
-
+      // Cache bukan hari ini.
       if (cacheTanggal != today) {
-        pragma("CACHE BUKAN HARI INI");
-
         return CheckInOutModel(
           tanggal: today,
           checkIn: null,
           checkOut: null,
           totalWaktu: null,
           isOff: false,
-          hasShift: cache['has_shift'] ?? true,
+          hasShift: cacheMap['has_shift'] ?? true,
           limitLate: null,
         );
       }
 
-      return CheckInOutModel.fromJson(Map<String, dynamic>.from(cache));
+      return CheckInOutModel.fromJson(cacheMap);
     }
   }
 

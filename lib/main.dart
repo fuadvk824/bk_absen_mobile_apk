@@ -3,7 +3,6 @@ import 'package:bk_absen/core/database/hive_service.dart';
 import 'package:bk_absen/core/network/connectivity_service.dart';
 import 'package:bk_absen/offline/services/sync_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -15,8 +14,6 @@ import 'core/storage/token_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FMTCObjectBoxBackend().initialise();
-  await FMTCStore('mapStore').manage.create();
 
   await initializeDateFormatting('id_ID', null);
   await dotenv.load(fileName: ".env");
@@ -34,6 +31,7 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
@@ -46,4 +44,12 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-//ScaffoldMessenger
+//1. ServerChecker
+//2. NetworkErrorHelper (hapus aja)
+//3. AttendanceNotifier
+
+// 7. Bahkan lebih baik: jangan cek message, cek status + kondisi attendance
+
+//kemungkinan gini (skenario server hidup)
+//user checkin gagal menjangkau server jadinya masuk ke data Hive
+//lalu user buka lagi mencoba krim hive ke server tapi gagal kirim dan terlanjur terhapus data hive nya

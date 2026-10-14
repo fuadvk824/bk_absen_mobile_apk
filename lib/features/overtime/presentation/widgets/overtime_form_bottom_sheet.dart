@@ -87,7 +87,6 @@ class _OvertimeFormBottomSheetState extends State<OvertimeFormBottomSheet> {
         top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 60,
       ),
-
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

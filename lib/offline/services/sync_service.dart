@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:bk_absen/core/network/server_checker.dart';
 import 'package:bk_absen/core/storage/cache_service.dart';
@@ -11,193 +10,91 @@ class SyncService {
   final OfflineRepository repo = OfflineRepository();
   final AttendanceRepository attendanceRepo = AttendanceRepository();
 
-  Future<void> syncPending() async {
-    developer.log(
-      "================ SYNC START ================",
-    );
-    final alive = await ServerChecker.isAlive();
+  Future<bool> syncPending() async {
+    try {
+      final alive = await ServerChecker.isAlive();
 
-    developer.log("SERVER ALIVE = $alive");
-
-    if (!alive) {
-      developer.log("SERVER MASIH DOWN");
-      return;
-    }
-
-    developer.log("SERVER HIDUP");
-
-    final pending = await repo.getPending();
-
-    developer.log(
-      "TOTAL PENDING = ${pending.length}",
-    );
-
-    if (pending.isEmpty) {
-      developer.log("TIDAK ADA DATA PENDING");
-      return;
-    }
-
-    for (final item in pending) {
-      developer.log(
-        "------------------------------------------",
-      );
-
-      developer.log(
-        "SYNC ITEM"
-        " key=${item.key}"
-        " type=${item.type}"
-        " employee=${item.employeeId}"
-        " createdAt=${item.createdAt}",
-      );
-
-      if (!File(item.imagePath).existsSync()) {
-        developer.log(
-          "GAGAL: foto ${item.type} tidak ditemukan:"
-          " ${item.imagePath}",
-        );
-
-        await repo.delete(item.key);
-
-        developer.log("ITEM DIHAPUS KARENA FOTO TIDAK ADA");
-
-        continue;
+      if (!alive) {
+        return false;
       }
 
-      if (item.lateProofPath != null &&
-          !File(item.lateProofPath!).existsSync()) {
-        developer.log(
-          "GAGAL: foto bukti terlambat tidak ditemukan:"
-          " ${item.lateProofPath}",
-        );
-
-        continue;
+      final pending = await repo.getPending();
+      
+      if (pending.isEmpty) {
+        return true;
       }
+      
+      pending.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-      try {
-       
-        if (item.type == "checkin") {
-          developer.log(
-            "UPLOAD CHECKIN..."
-          );
-
-          await attendanceRepo.checkIn(
-            employeeId: item.employeeId,
-            imagePath: item.imagePath,
-            lat: item.latitude,
-            lng: item.longitude,
-            distance: item.distance,
-            locationStatus: item.locationStatus,
-            lateReason: item.lateReason,
-            lateProof: item.lateProofPath == null
-                ? null
-                : File(item.lateProofPath!),
-            checkinAt: item.createdAt,
-          );
-        }
-
-        else if (item.type == "checkout") {
-          developer.log(
-            "UPLOAD CHECKOUT..."
-          );
-
-          await attendanceRepo.checkOut(
-            employeeId: item.employeeId,
-            imagePath: item.imagePath,
-            lat: item.latitude,
-            lng: item.longitude,
-            distance: item.distance,
-            locationStatus: item.locationStatus,
-            earlyReason: item.earlyReason,
-            checkoutAt: item.createdAt,
-          );
-        }
-
-        else {
-          developer.log(
-            "TYPE TIDAK DIKENALI: ${item.type}",
-          );
-
+      for (final item in pending) {
+        if (!File(item.imagePath).existsSync()) {
           continue;
         }
 
-        developer.log(
-          "UPLOAD ${item.type.toUpperCase()} BERHASIL",
-        );
+        if (item.lateProofPath != null &&
+            !File(item.lateProofPath!).existsSync()) {
+          continue;
+        }
 
-        await repo.delete(item.key);
+        try {
+          if (item.type == "checkin") {
+            await attendanceRepo.checkIn(
+              employeeId: item.employeeId,
+              imagePath: item.imagePath,
+              lat: item.latitude,
+              lng: item.longitude,
+              distance: item.distance,
+              locationStatus: item.locationStatus,
+              lateReason: item.lateReason,
+              lateProof: item.lateProofPath == null
+                  ? null
+                  : File(item.lateProofPath!),
+              checkinAt: item.createdAt,
+            );
+          } else if (item.type == "checkout") {
+            await attendanceRepo.checkOut(
+              employeeId: item.employeeId,
+              imagePath: item.imagePath,
+              lat: item.latitude,
+              lng: item.longitude,
+              distance: item.distance,
+              locationStatus: item.locationStatus,
+              earlyReason: item.earlyReason,
+              checkoutAt: item.createdAt,
+            );
+          } else {
+            return false;
+          }
 
-        developer.log(
-          "HIVE ITEM DIHAPUS:"
-          " key=${item.key}"
-          " type=${item.type}",
-        );
+          await repo.delete(item.key);
+        } on DioException catch (e) {
+          final statusCode = e.response?.statusCode;
 
-        final remaining = await repo.countPending();
+          if (item.type == "checkin" &&
+              statusCode == 400 &&
+              e.response?.data is Map &&
+              e.response?.data['message'] == 'Sudah checkin hari ini') {
+            await repo.delete(item.key);
+            continue;
+          }
 
-        developer.log(
-          "SISA PENDING = $remaining",
-        );
-      } on DioException catch (e) {
-        developer.log(
-          "DIO ERROR ${item.type.toUpperCase()}",
-        );
-
-        developer.log(
-          "STATUS CODE = ${e.response?.statusCode}",
-        );
-
-        developer.log(
-          "RESPONSE = ${e.response?.data}",
-        );
-
-        developer.log(
-          "MESSAGE = ${e.message}",
-        );
-
-        break;
-      } catch (e, stack) {
-        developer.log(
-          "SYNC ERROR ${item.type.toUpperCase()}: $e",
-        );
-
-        developer.log(
-          "STACK: $stack",
-        );
-
-        break;
+          if (statusCode != null) {
+            break;
+          }
+          return false;
+        } catch (e) {
+          return false;
+        }
       }
+
+      final remaining = await repo.countPending();
+
+      if (remaining == 0) {
+        await CacheService.delete("attendance_today");
+      }
+      return true;
+    } catch (e) {
+      return false;
     }
-
-    final remaining = await repo.countPending();
-
-    developer.log(
-      "==========================================",
-    );
-
-    developer.log(
-      "SYNC SELESAI"
-      " | SISA PENDING = $remaining",
-    );
-
-    if (remaining == 0) {
-      await CacheService.delete("attendance_today");
-
-      developer.log(
-        "SEMUA OFFLINE DATA SUDAH TERKIRIM",
-      );
-
-      developer.log(
-        "CACHE attendance_today DIHAPUS",
-      );
-    } else {
-      developer.log(
-        "MASIH ADA DATA PENDING."
-        " CACHE TIDAK DIHAPUS.",
-      );
-    }
-
-    developer.log(
-      "================ SYNC END ================",
-    );
   }
 }

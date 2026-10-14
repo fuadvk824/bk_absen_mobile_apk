@@ -59,6 +59,7 @@ class PanelRight extends StatelessWidget {
             title: "Status",
             value: locationStatus,
           ),
+          
           const Spacer(),
           SizedBox(
             height: 48,

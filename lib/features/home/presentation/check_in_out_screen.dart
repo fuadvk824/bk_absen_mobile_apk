@@ -13,6 +13,7 @@ import 'package:bk_absen/model/check_in_out_model.dart';
 import 'package:bk_absen/utils/app_colors.dart';
 import 'package:bk_absen/utils/custom_dialog.dart';
 import 'package:bk_absen/utils/toast_helper.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,9 @@ class CheckInOutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
+  bool _isMapInitialized = false;
+  bool _isMapInitializing = false;
+
   bool _isSubmitLoading = false;
   File? _imageFile;
   Timer? _timer;
@@ -41,13 +45,27 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
   LatLng? userLatLng;
   bool isLoadingLocation = false;
 
+  // final store = FMTCStore('mapStore');
+
   final store = FMTCStore('mapStore');
 
+  // @override
+  // void initState() {
+  //   super.initState();
+
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     cekLokasi();
+  //   });
+  // }
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _initializeMapCache();
+
+      if (!mounted) return;
+
       cekLokasi();
     });
   }
@@ -56,6 +74,33 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initializeMapCache() async {
+    if (_isMapInitialized || _isMapInitializing) return;
+
+    _isMapInitializing = true;
+
+    try {
+      await FMTCObjectBoxBackend().initialise();
+      await store.manage.create();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isMapInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('FMTC initialization error: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _isMapInitialized = false;
+      });
+    } finally {
+      _isMapInitializing = false;
+    }
   }
 
   Future<void> cekLokasi() async {
@@ -247,10 +292,23 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
         if (!mounted) return;
 
         Navigator.pop(context, true);
+      } on DioException catch (e) {
+        if (!mounted) return;
+
+        ToastHelper.errorFromDio(context, e);
+      } on Exception catch (e) {
+        if (!mounted) return;
+
+        final message = e.toString().replaceFirst('Exception: ', '');
+
+        ToastHelper.error(context, message: message);
       } catch (e) {
         if (!mounted) return;
 
-        ToastHelper.error(context, message: "Gagal: $e");
+        ToastHelper.error(
+          context,
+          message: 'Terjadi kesalahan. Silakan coba lagi.',
+        );
       } finally {
         if (mounted) {
           setState(() => _isSubmitLoading = false);
@@ -309,10 +367,17 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       }
       if (!mounted) return;
       Navigator.pop(context, true);
+    } on DioException catch (e) {
+      if (!mounted) return;
+
+      ToastHelper.errorFromDio(context, e);
     } catch (e) {
       if (!mounted) return;
 
-      ToastHelper.error(context, message: "Gagal: $e");
+      ToastHelper.error(
+        context,
+        message: 'Terjadi kesalahan. Silakan coba lagi.',
+      );
     } finally {
       if (mounted) {
         setState(() => _isSubmitLoading = false);
@@ -392,7 +457,10 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                           urlTemplate:
                               "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                           userAgentPackageName: 'com.bkabsen.app',
-                          tileProvider: store.getTileProvider(),
+                          // tileProvider: store.getTileProvider(),
+                          tileProvider: _isMapInitialized
+                              ? store.getTileProvider()
+                              : null,
                         ),
                         CircleLayer(
                           circles: [

@@ -1,14 +1,19 @@
-import 'package:bk_absen/features/auth/provider/auth_provider.dart';
 import 'package:bk_absen/model/user_model.dart';
 import 'package:bk_absen/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class HeaderSection extends ConsumerWidget {
   final UserModel? user;
+  final VoidCallback? onRefresh;
+  final bool isRefreshing;
 
-  const HeaderSection({super.key, this.user});
+  const HeaderSection({
+    super.key,
+    this.user,
+    this.onRefresh,
+    this.isRefreshing = false,
+  });
 
   String _shortenName(String? name, double maxWidth) {
     if (name == null || name.trim().isEmpty) {
@@ -117,9 +122,7 @@ class HeaderSection extends ConsumerWidget {
           const SizedBox(width: 10),
 
           InkWell(
-            onTap: () async {
-              await ref.read(authProvider.notifier).logout();
-            },
+            onTap: isRefreshing ? null : onRefresh,
             borderRadius: BorderRadius.circular(10),
             child: Container(
               width: 42,
@@ -128,7 +131,16 @@ class HeaderSection extends ConsumerWidget {
                 border: Border.all(color: AppColors.muted),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(LucideIcons.logOut, size: 18),
+              child: isRefreshing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: Padding(
+                        padding: EdgeInsets.all(11),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : const Icon(Icons.refresh, size: 20),
             ),
           ),
         ],

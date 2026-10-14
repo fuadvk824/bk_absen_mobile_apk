@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ConnectivityService {
   final Connectivity connectivity = Connectivity();
-
   StreamSubscription? _subscription;
 
   void listen(void Function() onOnline) {

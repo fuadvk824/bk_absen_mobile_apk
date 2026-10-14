@@ -1,6 +1,7 @@
 import 'package:bk_absen/features/category/payroll.dart';
 import 'package:bk_absen/features/leave/presentation/leave_screen.dart';
 import 'package:bk_absen/features/letter/presentation/letter_screen.dart';
+import 'package:bk_absen/features/offday/presentation/offday_screen.dart';
 import 'package:bk_absen/features/overtime/presentation/overtime_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -12,11 +13,7 @@ class MenuItem {
   final IconData icon;
   final Widget page;
 
-  const MenuItem({
-    required this.title,
-    required this.icon,
-    required this.page,
-  });
+  const MenuItem({required this.title, required this.icon, required this.page});
 }
 
 class Menu extends StatelessWidget {
@@ -30,20 +27,25 @@ class Menu extends StatelessWidget {
     ),
     MenuItem(
       title: "Cuti",
-      icon: LucideIcons.luggage,
+      icon: LucideIcons.calendarX,
       page: LeaveScreen(title: 'Cuti'),
     ),
     MenuItem(
-      title: "Payroll",
-      icon: LucideIcons.receipt,
-      page: Payroll(title: 'Payroll')
+      title: "Jadwal Libur",
+      icon: LucideIcons.calendarSync,
+      page: OffdayScreen(title: 'Jadwal Libur'),
     ),
     MenuItem(
       title: "SP",
       icon: LucideIcons.mailWarning,
-      page: LetterScreen(title: 'SP')
+      page: LetterScreen(title: 'SP'),
     ),
-  
+
+    MenuItem(
+      title: "Payroll",
+      icon: LucideIcons.receipt,
+      page: Payroll(title: 'Payroll'),
+    ),
   ];
 
   @override
@@ -56,17 +58,17 @@ class Menu extends StatelessWidget {
             const SizedBox(height: 10),
 
             const Text(
-              "Kategori",
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-              ),
+              "Category",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
             ),
 
             Expanded(
               child: GridView.builder(
                 itemCount: menus.length,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   mainAxisSpacing: 16,
@@ -81,9 +83,7 @@ class Menu extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => menu.page,
-                        ),
+                        MaterialPageRoute(builder: (_) => menu.page),
                       );
                     },
                     child: Column(
@@ -96,11 +96,7 @@ class Menu extends StatelessWidget {
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            menu.icon,
-                            color: Colors.white,
-                            size: 28,
-                          ),
+                          child: Icon(menu.icon, color: Colors.white, size: 28),
                         ),
 
                         const SizedBox(height: 8),

@@ -6,7 +6,8 @@ import 'package:bk_absen/features/leave/provider/leave_provider.dart';
 import 'package:bk_absen/model/leave_balance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
 import 'package:bk_absen/utils/app_colors.dart';
 
@@ -20,7 +21,6 @@ class LeaveScreen extends ConsumerStatefulWidget {
 }
 
 class _LeaveScreenState extends ConsumerState<LeaveScreen> {
-
   File? selectedFile;
   DateTime? selectedDate;
   DateTime? endDate;
@@ -57,13 +57,13 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
     );
   }
 
-  Future<void> openFile(String url) async {
-    final Uri uri = Uri.parse(url);
+  // Future<void> openFile(String url) async {
+  //   final Uri uri = Uri.parse(url);
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception("Tidak bisa membuka file");
-    }
-  }
+  //   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+  //     throw Exception("Tidak bisa membuka file");
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +105,7 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
 
                   Expanded(
                     child: state.data.isEmpty
-                        ? const Center(child: Text("Belum ada data cuti"))
+                        ? _buildEmptyState()
                         : ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: state.data.length,
@@ -116,11 +116,78 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
                             },
                           ),
                   ),
-
-                  
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bottomInset = MediaQuery.of(context).padding.bottom;
+
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            width: double.infinity,
+            height: constraints.maxHeight,
+            child: Center(
+              child: Transform.translate(
+                offset: Offset(0, -bottomInset / 2),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF016E0A,
+                          ).withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.calendarX,
+                          size: 44,
+                          color: AppColors.primary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'Belum Ada Data Cuti',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Text(
+                        'Belum ada pengajuan cuti yang tercatat.',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -170,7 +237,7 @@ class _LeaveScreenState extends ConsumerState<LeaveScreen> {
 
                 Text(
                   "${b.usedDays}/${b.totalQuota}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),

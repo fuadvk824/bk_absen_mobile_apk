@@ -32,6 +32,7 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
     {"icon": LucideIcons.clockAlert, "label": "Queue"},
     {"icon": LucideIcons.user, "label": "Profile"},
   ];
+
   @override
   void initState() {
     super.initState();
@@ -45,14 +46,11 @@ class _BottomNavbarState extends ConsumerState<BottomNavbar> {
       Profile(),
     ];
   }
-
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
-
-
   void _onTap(int index) {
     setState(() {
       _currentIndex = index;

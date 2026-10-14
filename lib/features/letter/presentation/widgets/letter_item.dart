@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:bk_absen/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'package:bk_absen/model/letter_model.dart';
 import 'package:bk_absen/utils/app_colors.dart';
-import 'package:bk_absen/features/letter/presentation/widgets/letter_pdf.dart';
 
 class LetterItem extends StatefulWidget {
   final LetterModel letter;
-  final Future<void> Function()? onRead;
+  final Future<String?> Function()? onRead;
 
   const LetterItem({super.key, required this.letter, this.onRead});
 
@@ -15,12 +20,14 @@ class LetterItem extends StatefulWidget {
 }
 
 class _LetterItemState extends State<LetterItem> {
+  bool _isDownloading = false;
+  double _progress = 0;
+
   String _getDayShort(int weekday) {
     const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
     return days[weekday - 1];
   }
-
   String _getMonthShort(int month) {
     const months = [
       'Jan',
@@ -44,14 +51,19 @@ class _LetterItemState extends State<LetterItem> {
     switch (jenisSurat.toLowerCase()) {
       case 'sp1':
         return Colors.orange;
+
       case 'sp2':
         return Colors.deepOrange;
+
       case 'sp3':
         return Colors.red;
+
       case 'probation':
         return Colors.blue;
+
       case 'paklaring':
         return Colors.green;
+
       default:
         return AppColors.primary;
     }
@@ -61,43 +73,139 @@ class _LetterItemState extends State<LetterItem> {
     switch (jenisSurat.toLowerCase()) {
       case 'sp1':
         return 'Surat Peringatan 1';
+
       case 'sp2':
         return 'Surat Peringatan 2';
+
       case 'sp3':
         return 'Surat Peringatan 3';
+
       case 'probation':
         return 'Surat Probation';
+
       case 'paklaring':
         return 'Surat Paklaring';
+
       default:
         return jenisSurat;
     }
   }
 
-  Future<void> _openPdf(BuildContext context) async {
-    final pdfUrl = widget.letter.pdfUrl;
+  Future<void> _downloadPdf() async {
+    if (_isDownloading) return;
 
-    if (pdfUrl == null || pdfUrl.isEmpty) {
+    final oldPdfUrl = widget.letter.pdfUrl;
+
+    if (oldPdfUrl == null || oldPdfUrl.isEmpty) {
       ToastHelper.warning(context, message: 'PDF tidak tersedia');
       return;
     }
 
-    if (!widget.letter.isRead) {
-      await widget.onRead?.call();
+    setState(() {
+      _isDownloading = true;
+      _progress = 0;
+    });
+
+    try {
+      // URL yang akan digunakan untuk download.
+      // Awalnya menggunakan PDF biasa.
+      String downloadUrl = oldPdfUrl;
+      bool isReadPdf = widget.letter.isRead;
+
+      if (!widget.letter.isRead) {
+        final newPdfUrl = await widget.onRead?.call();
+
+        if (newPdfUrl == null || newPdfUrl.isEmpty) {
+          throw Exception('Gagal mendapatkan PDF surat yang sudah dibaca');
+        }
+
+        downloadUrl = newPdfUrl;
+        isReadPdf = true;
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+
+      final baseFileName = _generateFileName();
+
+      // Pisahkan file lokal berdasarkan status sudah dibaca.
+      final fileName = isReadPdf
+          ? baseFileName.replaceFirst('.pdf', '-read.pdf')
+          : baseFileName;
+
+      final filePath = '${directory.path}/$fileName';
+
+      final file = File(filePath);
+
+      // Kalau PDF versi ini sudah pernah didownload,
+      // langsung buka file tersebut.
+      if (await file.exists()) {
+        if (!mounted) return;
+
+        setState(() {
+          _isDownloading = false;
+          _progress = 1;
+        });
+
+        await OpenFilex.open(filePath);
+        return;
+      }
+
+      await Dio().download(
+        downloadUrl,
+        filePath,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+          validateStatus: (status) {
+            return status != null && status >= 200 && status < 300;
+          },
+        ),
+        onReceiveProgress: (received, total) {
+          if (!mounted) return;
+
+          if (total > 0) {
+            setState(() {
+              _progress = received / total;
+            });
+          }
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isDownloading = false;
+        _progress = 1;
+      });
+
+      ToastHelper.success(context, message: 'PDF berhasil didownload');
+
+      await OpenFilex.open(filePath);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isDownloading = false;
+        _progress = 0;
+      });
+
+      ToastHelper.error(context, message: 'Gagal membuka PDF');
+    }
+  }
+
+  String _generateFileName() {
+    var nomorSurat = widget.letter.nomorSurat
+        .replaceAll('/', '_')
+        .replaceAll('\\', '_')
+        .replaceAll(' ', '_');
+
+    nomorSurat = nomorSurat.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+
+    if (nomorSurat.isEmpty) {
+      nomorSurat = 'surat_peringatan';
     }
 
-    if (!context.mounted) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LetterPdf(
-          pdfUrl: pdfUrl,
-          title: _getLetterTitle(widget.letter.jenisSurat),
-          nomorSurat: widget.letter.nomorSurat,
-        ),
-      ),
-    );
+    return '$nomorSurat.pdf';
   }
 
   @override
@@ -248,7 +356,9 @@ class _LetterItemState extends State<LetterItem> {
                     ),
 
                     const SizedBox(height: 4),
+
                     const Divider(),
+
                     const SizedBox(height: 2),
 
                     if (widget.letter.pdfUrl != null &&
@@ -257,18 +367,36 @@ class _LetterItemState extends State<LetterItem> {
                         height: 35,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
-                          onTap: () => _openPdf(context),
+                          onTap: _isDownloading
+                              ? null
+                              : () => _downloadPdf(),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.picture_as_pdf,
-                                size: 17,
-                                color: AppColors.primary,
-                              ),
+                              if (_isDownloading)
+                                SizedBox(
+                                  width: 17,
+                                  height: 17,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              else
+                                Icon(
+                                  Icons.download_outlined,
+                                  size: 17,
+                                  color: AppColors.primary,
+                                ),
+
                               const SizedBox(width: 6),
+
                               Text(
-                                'Lihat PDF',
+                                _isDownloading
+                                    ? _progress > 0
+                                          ? 'Downloading ${(_progress * 100).toStringAsFixed(0)}%'
+                                          : 'Downloading...'
+                                    : 'Lihat & Download',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
