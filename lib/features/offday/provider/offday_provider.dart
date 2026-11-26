@@ -22,6 +22,7 @@ class OffdayState {
   // Periode libur dari backend.
   final String periodStart;
   final String periodEnd;
+  final bool canSubmit;
 
   OffdayState({
     this.schedules = const [],
@@ -34,6 +35,7 @@ class OffdayState {
     this.isSubmitting = false,
     this.periodStart = '',
     this.periodEnd = '',
+    this.canSubmit = false,
   });
 
   OffdayState copyWith({
@@ -47,6 +49,7 @@ class OffdayState {
     bool? isSubmitting,
     String? periodStart,
     String? periodEnd,
+    bool? canSubmit,
   }) {
     return OffdayState(
       schedules: schedules ?? this.schedules,
@@ -60,6 +63,7 @@ class OffdayState {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       periodStart: periodStart ?? this.periodStart,
       periodEnd: periodEnd ?? this.periodEnd,
+      canSubmit: canSubmit ?? this.canSubmit,
     );
   }
 }
@@ -98,6 +102,7 @@ class OffdayNotifier extends StateNotifier<OffdayState> {
         colleaguePendingRequests: result.colleaguePendingRequests,
         periodStart: result.periodStart,
         periodEnd: result.periodEnd,
+        canSubmit: result.canSubmit,
         selectedYear: selectedYear,
         isLoading: false,
         selectedChanges: {},
@@ -232,6 +237,9 @@ class OffdayNotifier extends StateNotifier<OffdayState> {
   // =========================================================
 
   bool canSelectOffday(OffdayScheduleDayModel day) {
+    if (!state.canSubmit) {
+      return false;
+    }
     // Tanggal harus masuk periode backend.
     if (!isWithinOffdayPeriod(day)) {
       return false;
@@ -258,6 +266,10 @@ class OffdayNotifier extends StateNotifier<OffdayState> {
   // =========================================================
 
   bool toggleDay(OffdayScheduleDayModel day) {
+    if (!state.canSubmit) {
+      return false;
+    }
+
     if (!isWithinOffdayPeriod(day)) {
       return false;
     }
@@ -308,6 +320,11 @@ class OffdayNotifier extends StateNotifier<OffdayState> {
   // =========================================================
 
   Future<String> submit({required String reason}) async {
+    if (!state.canSubmit) {
+      throw Exception(
+        'Pengajuan perubahan jadwal hanya dibuka tanggal 21-24 setiap bulan.',
+      );
+    }
     if (state.selectedChanges.isEmpty) {
       throw Exception('Belum ada perubahan jadwal.');
     }

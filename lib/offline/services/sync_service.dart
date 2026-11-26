@@ -19,23 +19,14 @@ class SyncService {
       }
 
       final pending = await repo.getPending();
-      
+
       if (pending.isEmpty) {
         return true;
       }
-      
+
       pending.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
       for (final item in pending) {
-        if (!File(item.imagePath).existsSync()) {
-          continue;
-        }
-
-        if (item.lateProofPath != null &&
-            !File(item.lateProofPath!).existsSync()) {
-          continue;
-        }
-
         try {
           if (item.type == "checkin") {
             await attendanceRepo.checkIn(
@@ -46,7 +37,8 @@ class SyncService {
               distance: item.distance,
               locationStatus: item.locationStatus,
               lateReason: item.lateReason,
-              lateProof: item.lateProofPath == null
+              lateProof:
+                  item.lateProofPath == null || item.lateProofPath!.isEmpty
                   ? null
                   : File(item.lateProofPath!),
               checkinAt: item.createdAt,

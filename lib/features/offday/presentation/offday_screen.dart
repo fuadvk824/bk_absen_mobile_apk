@@ -68,7 +68,7 @@ class _OffdayScreenState extends ConsumerState<OffdayScreen> {
               ),
             ),
             const SizedBox(width: 6),
-            const OffdayInfo(), 
+            const OffdayInfo(),
           ],
         ),
 

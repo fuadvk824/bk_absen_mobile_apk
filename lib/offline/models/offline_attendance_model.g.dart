@@ -20,7 +20,7 @@ class OfflineAttendanceModelAdapter
     return OfflineAttendanceModel(
       type: fields[0] as String,
       employeeId: (fields[1] as num).toInt(),
-      imagePath: fields[2] as String,
+      imagePath: fields[2] as String?,
       latitude: (fields[3] as num).toDouble(),
       longitude: (fields[4] as num).toDouble(),
       distance: (fields[5] as num).toDouble(),
@@ -32,13 +32,14 @@ class OfflineAttendanceModelAdapter
       status: fields[11] == null ? "pending" : fields[11] as String,
       retryCount: fields[12] == null ? 0 : (fields[12] as num).toInt(),
       synced: fields[13] == null ? false : fields[13] as bool,
+      clientEventId: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OfflineAttendanceModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
@@ -66,7 +67,9 @@ class OfflineAttendanceModelAdapter
       ..writeByte(12)
       ..write(obj.retryCount)
       ..writeByte(13)
-      ..write(obj.synced);
+      ..write(obj.synced)
+      ..writeByte(14)
+      ..write(obj.clientEventId);
   }
 
   @override

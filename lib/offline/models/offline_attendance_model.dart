@@ -4,7 +4,6 @@ part 'offline_attendance_model.g.dart';
 
 @HiveType(typeId: 0)
 class OfflineAttendanceModel extends HiveObject {
-
   @HiveField(0)
   String type;
 
@@ -12,7 +11,7 @@ class OfflineAttendanceModel extends HiveObject {
   int employeeId;
 
   @HiveField(2)
-  String imagePath;
+  String? imagePath;
 
   @HiveField(3)
   double latitude;
@@ -47,10 +46,13 @@ class OfflineAttendanceModel extends HiveObject {
   @HiveField(13)
   bool synced;
 
+  @HiveField(14)
+  String? clientEventId;
+
   OfflineAttendanceModel({
     required this.type,
     required this.employeeId,
-    required this.imagePath,
+    this.imagePath,
     required this.latitude,
     required this.longitude,
     required this.distance,
@@ -62,5 +64,6 @@ class OfflineAttendanceModel extends HiveObject {
     this.status = "pending",
     this.retryCount = 0,
     this.synced = false,
+    this.clientEventId,
   });
 }

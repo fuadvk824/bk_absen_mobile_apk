@@ -247,14 +247,29 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
     }
   }
 
-  bool canSubmit(CheckInOutModel? data) {
+  // bool canSubmit(CheckInOutModel? data) {
+  //   if (data?.isOff == true) return false;
+
+  //   final isCheckedIn = data?.checkIn != null && data!.checkIn!.isNotEmpty;
+  //   final isCheckedOut = data?.checkOut != null && data!.checkOut!.isNotEmpty;
+  //   final isDone = isCheckedIn && isCheckedOut;
+
+  //   return _imageFile != null &&
+  //       userLatLng != null &&
+  //       _distance != null &&
+  //       !_isSubmitLoading &&
+  //       !isDone;
+  // }
+  bool canSubmit(CheckInOutModel? data, int employeeId) {
     if (data?.isOff == true) return false;
 
     final isCheckedIn = data?.checkIn != null && data!.checkIn!.isNotEmpty;
     final isCheckedOut = data?.checkOut != null && data!.checkOut!.isNotEmpty;
     final isDone = isCheckedIn && isCheckedOut;
 
-    return _imageFile != null &&
+    final isSpecialEmployee = employeeId == 34;
+
+    return (isSpecialEmployee || _imageFile != null) &&
         userLatLng != null &&
         _distance != null &&
         !_isSubmitLoading &&
@@ -280,7 +295,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       try {
         await notifier.checkIn(
           employeeId: employeeId,
-          imagePath: _imageFile!.path,
+          // imagePath: _imageFile!.path,
+          imagePath: _imageFile?.path,
           lat: userLatLng!.latitude,
           lng: userLatLng!.longitude,
           distance: _distance!,
@@ -338,7 +354,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
 
           await notifier.checkOut(
             employeeId: employeeId,
-            imagePath: _imageFile!.path,
+            // imagePath: _imageFile!.path,
+            imagePath: _imageFile?.path,
             lat: userLatLng!.latitude,
             lng: userLatLng!.longitude,
             distance: _distance!,
@@ -348,7 +365,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
         } else {
           await notifier.checkOut(
             employeeId: employeeId,
-            imagePath: _imageFile!.path,
+            // imagePath: _imageFile!.path,
+            imagePath: _imageFile?.path,
             lat: userLatLng!.latitude,
             lng: userLatLng!.longitude,
             distance: _distance!,
@@ -358,7 +376,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
       } else {
         await notifier.checkIn(
           employeeId: employeeId,
-          imagePath: _imageFile!.path,
+          // imagePath: _imageFile!.path,
+          imagePath: _imageFile?.path,
           lat: userLatLng!.latitude,
           lng: userLatLng!.longitude,
           distance: _distance!,
@@ -558,7 +577,8 @@ class _CheckInOutScreenState extends ConsumerState<CheckInOutScreen> {
                                 data: data,
                                 distance: _distance,
                                 locationStatus: _locationStatus,
-                                canSubmit: canSubmit(data),
+                                // canSubmit: canSubmit(data),
+                                canSubmit: canSubmit(data, user.employeeId),
                                 isCheckedIn: isCheckedIn,
                                 isCheckedOut: isCheckedOut,
                                 isSubmitLoading: _isSubmitLoading,

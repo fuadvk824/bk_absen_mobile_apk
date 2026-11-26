@@ -186,7 +186,7 @@ class _OffdayInfoTooltip extends StatelessWidget {
             icon: Icons.notes_outlined,
             title: 'Aturan pengajuan',
             description:
-                'Tidak boleh memilih hari libur sama dengan rekan kerja, diskusikan pemilihan hari libur'
+                'Tidak boleh memilih hari libur sama dengan rekan kerja, diskusikan pemilihan hari libur dengan sesama rekan'
           ),
           
         ],
